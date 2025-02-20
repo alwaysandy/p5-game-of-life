@@ -19,11 +19,14 @@ class Tile {
   }
 }
 
+let keep_running = false;
+
 const grid = [];
-const GRID_WIDTH = 10;
-const GRID_HEIGHT = 10;
-const CANVAS_SIZE = 400;
+const GRID_WIDTH = 40;
+const GRID_HEIGHT = 40;
+const CANVAS_SIZE = 600;
 const SQUARE_SIZE = CANVAS_SIZE / GRID_WIDTH;
+
 const UP = [0, -1];
 const DOWN = [0, 1];
 const LEFT = [-1, 0];
@@ -95,15 +98,22 @@ function mousePressed() {
 }
 
 function keyPressed() {
-  updateTiles();
+  if (key === ' ') {
+    keep_running = !keep_running;
+  }
 }
 
 function draw() {
+  frameRate(10);
   background(220);
 
   for (let row of grid) {
     for (let t of row) {
       t.show();
     }
+  }
+
+  if (keep_running) {
+    updateTiles();
   }
 }
