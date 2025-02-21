@@ -9,7 +9,6 @@ class Tile {
 
   show() {
     strokeWeight(1);
-
     if (this.alive) {
       fill(0);
     } else {
@@ -22,8 +21,8 @@ class Tile {
 let keep_running = false;
 
 const grid = [];
-const GRID_WIDTH = 40;
-const GRID_HEIGHT = 40;
+const GRID_WIDTH = 20;
+const GRID_HEIGHT = 20;
 const CANVAS_SIZE = 600;
 const SQUARE_SIZE = CANVAS_SIZE / GRID_WIDTH;
 
@@ -37,6 +36,8 @@ const DOWNLEFT = [-1, 1];
 const DOWNRIGHT = [1, 1];
 const directions = [UP, DOWN, LEFT, RIGHT, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT];
 
+const livingCells = new Set();
+
 for (let i = 0; i < GRID_HEIGHT; i++) {
   grid.push([]);
 }
@@ -45,44 +46,54 @@ function setup() {
   createCanvas(CANVAS_SIZE, CANVAS_SIZE);
   for (let i = 0; i < GRID_WIDTH; i++) {
     for (let j = 0; j < GRID_HEIGHT; j++) {
-      grid[i].push(new Tile(i*SQUARE_SIZE, j*SQUARE_SIZE, j, i, false));
+      grid[i].push(new Tile(i*SQUARE_SIZE, j*SQUARE_SIZE, i, j, false));
     }
   }
 }
 
 function updateTiles() {
-  let to_update = [];
-  for (let row of grid) {
-    for (let t of row) {
-      let neighbours = 0;
-      for (let d of directions) {
-        if (t.index_x + d[0] < 0 || t.index_x + d[0] >= GRID_WIDTH) {
-          continue;
-        }
-
-        if (t.index_y + d[1] < 0 || t.index_y + d[1] >= GRID_HEIGHT) {
-          continue;
-        }
-
-        if (grid[t.index_y + d[1]][t.index_x + d[0]].alive) {
-          neighbours += 1;
-        }
+  let deadCells = [];
+  let deadNeighbours = new Map();
+  for (let t of livingCells) {
+    let neighbours = 0;
+    for (let d of directions) {
+      let n_x = t.index_x + d[0];
+      let n_y = t.index_y + d[1];
+      if (n_x < 0 || n_x >= GRID_WIDTH) {
+        continue;
       }
 
-      if (t.alive) {
-        console.log(neighbours);
+      if (n_y < 0 || n_y >= GRID_HEIGHT) {
+        continue;
       }
 
-      if (t.alive && (neighbours < 2 || neighbours > 3)) {
-        to_update.push({tile: t, alive: false});
-      } else if (t.alive == false && neighbours == 3) {
-        to_update.push({tile: t, alive: true});
+      if (grid[n_x][n_y].alive) {
+        neighbours += 1;
+      } else {
+        let nnCount = deadNeighbours.get(grid[n_x][n_y]);
+        if (!nnCount) {
+          deadNeighbours.set(grid[n_x][n_y], 1);
+        } else {
+          deadNeighbours.set(grid[n_x][n_y], nnCount + 1);
+        }
       }
+    }
+
+    if (neighbours < 2 || neighbours > 3) {
+      deadCells.push(t);
     }
   }
 
-  for (let t of to_update) {
-    t.tile.alive = t.alive;
+  for (let t of deadCells) {
+    t.alive = false;
+    livingCells.delete(t);
+  }
+
+  for (const [cell, neighbours] of deadNeighbours) {
+    if (neighbours == 3) {
+      cell.alive = true;
+      livingCells.add(cell);
+    }
   }
 }
 
@@ -90,11 +101,17 @@ function mousePressed() {
   x = floor(mouseX / SQUARE_SIZE);
   y = floor(mouseY / SQUARE_SIZE);
 
-  if (x > CANVAS_SIZE || y > CANVAS_SIZE || x < 0 || y < 0) {
+  if (x > GRID_WIDTH || y > GRID_HEIGHT || x < 0 || y < 0) {
     return;
-  } 
+  }
 
-  grid[x][y].alive =  !grid[x][y].alive;
+  let cell = grid[x][y];
+  cell.alive = !cell.alive;
+  if (cell.alive) {
+    livingCells.add(cell);
+  } else {
+    livingCells.delete(cell);
+  }
 }
 
 function keyPressed() {
