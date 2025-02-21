@@ -20,11 +20,14 @@ class Tile {
 
 let keep_running = false;
 
-const grid = [];
-const GRID_WIDTH = 20;
-const GRID_HEIGHT = 20;
 const CANVAS_SIZE = 600;
-const SQUARE_SIZE = CANVAS_SIZE / GRID_WIDTH;
+const GRID_LENGTH = 50;
+const SQUARE_SIZE = CANVAS_SIZE / GRID_LENGTH;
+
+const grid = [];
+for (let i = 0; i < GRID_LENGTH; i++) {
+  grid.push([]);
+}
 
 const UP = [0, -1];
 const DOWN = [0, 1];
@@ -38,14 +41,10 @@ const directions = [UP, DOWN, LEFT, RIGHT, UPLEFT, UPRIGHT, DOWNLEFT, DOWNRIGHT]
 
 const livingCells = new Set();
 
-for (let i = 0; i < GRID_HEIGHT; i++) {
-  grid.push([]);
-}
-
 function setup() {
   createCanvas(CANVAS_SIZE, CANVAS_SIZE);
-  for (let i = 0; i < GRID_WIDTH; i++) {
-    for (let j = 0; j < GRID_HEIGHT; j++) {
+  for (let i = 0; i < GRID_LENGTH; i++) {
+    for (let j = 0; j < GRID_LENGTH; j++) {
       grid[i].push(new Tile(i*SQUARE_SIZE, j*SQUARE_SIZE, i, j, false));
     }
   }
@@ -59,11 +58,11 @@ function updateTiles() {
     for (let d of directions) {
       let n_x = t.index_x + d[0];
       let n_y = t.index_y + d[1];
-      if (n_x < 0 || n_x >= GRID_WIDTH) {
+      if (n_x < 0 || n_x >= GRID_LENGTH) {
         continue;
       }
 
-      if (n_y < 0 || n_y >= GRID_HEIGHT) {
+      if (n_y < 0 || n_y >= GRID_LENGTH) {
         continue;
       }
 
@@ -101,7 +100,7 @@ function mousePressed() {
   x = floor(mouseX / SQUARE_SIZE);
   y = floor(mouseY / SQUARE_SIZE);
 
-  if (x > GRID_WIDTH || y > GRID_HEIGHT || x < 0 || y < 0) {
+  if (x > GRID_LENGTH || y > GRID_LENGTH || x < 0 || y < 0) {
     return;
   }
 
